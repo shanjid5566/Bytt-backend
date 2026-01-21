@@ -1,21 +1,39 @@
-const { getDB } = require("../config/db");
+const { getDB, connectDB } = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const getAllUsers = async () => {
-  const db = getDB();
+  let db;
+  try {
+    db = getDB();
+  } catch (e) {
+    await connectDB();
+    db = getDB();
+  }
   const users = await db.collection("users").find().toArray();
   // remove password before returning
   return users.map(({ password, ...rest }) => rest);
 };
 
 const createUser = async (userData) => {
-  const db = getDB();
+  let db;
+  try {
+    db = getDB();
+  } catch (e) {
+    await connectDB();
+    db = getDB();
+  }
   return await db.collection("users").insertOne(userData);
 };
 
 const register = async ({ name, email, password }) => {
-  const db = getDB();
+  let db;
+  try {
+    db = getDB();
+  } catch (e) {
+    await connectDB();
+    db = getDB();
+  }
   const existing = await db.collection("users").findOne({ email });
   if (existing) throw new Error("User already exists");
   const hashed = await bcrypt.hash(password, 10);
@@ -34,7 +52,13 @@ const register = async ({ name, email, password }) => {
 };
 
 const authenticate = async ({ email, password }) => {
-  const db = getDB();
+  let db;
+  try {
+    db = getDB();
+  } catch (e) {
+    await connectDB();
+    db = getDB();
+  }
   const user = await db.collection("users").findOne({ email });
   console.log(
     "authenticate: found user?",
